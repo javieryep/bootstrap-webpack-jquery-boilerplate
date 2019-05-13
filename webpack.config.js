@@ -6,6 +6,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const PreloadWebpackPlugin = require('preload-webpack-plugin');
 const CssUrlRelativePlugin = require('css-url-relative-plugin');
+const globSync = require('glob').sync;
 
 const IS_DEV = process.env.NODE_ENV === 'dev';
 
@@ -94,14 +95,17 @@ const config = {
         to: 'public',
       },
     ]),
-    new HtmlWebPackPlugin({
-      template: path.resolve(__dirname, './src/index.html'),
-      favicon: path.resolve(__dirname, './src/public/icon.ico'),
-      minify: !IS_DEV && {
-        collapseWhitespace: true,
-        preserveLineBreaks: true,
-        removeComments: true,
-      },
+    ...globSync('src/**/*.html').map(fileName => {
+      return new HtmlWebPackPlugin({
+        template: fileName,
+        favicon: path.resolve(__dirname, './src/public/icon.ico'),
+        minify: !IS_DEV && {
+          collapseWhitespace: true,
+          preserveLineBreaks: true,
+          removeComments: true,
+        },
+        filename: fileName.replace('src/', ''),
+      });
     }),
     new MiniCssExtractPlugin({
       filename: IS_DEV ? 'css/[name].css' : 'css/[name].[contenthash].css',
